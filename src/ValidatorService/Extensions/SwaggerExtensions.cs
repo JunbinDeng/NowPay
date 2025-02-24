@@ -1,6 +1,5 @@
 using System.Reflection;
 using Microsoft.OpenApi.Models;
-using ValidatorService.Documentation;
 
 namespace ValidatorService.Extensions;
 
@@ -21,8 +20,6 @@ public static class SwaggerExtensions
             var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             c.IncludeXmlComments(xmlPath);
-
-            c.OperationFilter<SwaggerResponseExamples>();
         });
         return services;
     }
