@@ -20,3 +20,9 @@ app.UseHttpsConfig(builder.Configuration); // Apply HTTPS settings
 app.MapControllers();
 
 app.Run();
+
+/// <summary>
+/// Partial Program class used for integration testing.
+/// This allows test projects to reference and extend the main application entry point.
+/// </summary>
+public partial class Program { }

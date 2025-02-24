@@ -1,3 +1,5 @@
+using ValidatorService.Helpers;
+
 namespace ValidatorService.Data;
 
 /// <summary>
@@ -9,6 +11,6 @@ public class LuhnValidatorService : IValidatorService
     /// <exception cref="NotImplementedException">Thrown if validation is not implemented.</exception>
     public bool ValidateCardNumber(string? cardNumber)
     {
-        throw new NotImplementedException();
+        return LuhnAlgorithm.ValidateCheckDigit(cardNumber);
     }
 }
