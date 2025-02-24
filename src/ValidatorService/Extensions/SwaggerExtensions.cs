@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.OpenApi.Models;
 using ValidatorService.Documentation;
 
@@ -16,6 +17,10 @@ public static class SwaggerExtensions
                 Version = "v1",
                 Description = "API for validating credit card numbers using the Luhn algorithm."
             });
+
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            c.IncludeXmlComments(xmlPath);
 
             c.OperationFilter<SwaggerResponseExamples>();
         });
