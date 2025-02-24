@@ -1,0 +1,14 @@
+services:
+  validator-service:
+    container_name: validator-service
+    build:
+      context: ./src/ValidatorService
+      dockerfile: Dockerfile
+    ports:
+      - '5001:5001' # HTTP
+      - '5002:5002' # HTTPS
+    environment:
+      ASPNETCORE_ENVIRONMENT: 'Production'
+      ASPNETCORE_URLS: 'http://+:5001;https://+:5002'
+    volumes:
+      - ./infra/devcerts:/app/devcerts # Mount the certificate folder

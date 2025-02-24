@@ -30,6 +30,48 @@ public static class ServiceExtensions
     }
 
     /// <summary>
+    /// Configures Kestrel to listen on HTTP and HTTPS ports dynamically from configuration.
+    /// </summary>
+    public static void ConfigureKestrelServer(this WebApplicationBuilder builder)
+    {
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            var configuration = builder.Configuration;
+
+            // Configure HTTPS
+            var httpsUrl = configuration["Kestrel:Endpoints:Https:Url"];
+            var certPath = configuration["Kestrel:Endpoints:Https:Certificates:Path"]; // Default path for Docker
+            var certPassword = configuration["Kestrel:Endpoints:Https:Certificates:Password"]; // Default password
+
+            if (!string.IsNullOrEmpty(httpsUrl) && Uri.TryCreate(httpsUrl, UriKind.Absolute, out var uriHttps))
+            {
+                if (File.Exists(certPath))
+                {
+                    options.ListenAnyIP(uriHttps.Port, listenOptions =>
+                    {
+                        listenOptions.UseHttps(certPath, certPassword); // Load HTTPS certificate
+                    });
+                }
+                else
+                {
+                    Console.WriteLine($"Warning: HTTPS certificate not found at {certPath}. HTTPS might not work.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Warning: HTTPS URL is not properly configured.");
+            }
+
+            // Configure HTTP
+            var httpUrl = configuration["Kestrel:Endpoints:Http:Url"];
+            if (!string.IsNullOrEmpty(httpUrl) && Uri.TryCreate(httpUrl, UriKind.Absolute, out var uriHttp))
+            {
+                options.ListenAnyIP(uriHttp.Port); // Enable HTTP
+            }
+        });
+    }
+
+    /// <summary>
     /// Applies HTTPS Redirection and HSTS middleware at runtime.
     /// </summary>
     public static void UseHttpsConfig(this WebApplication app, IConfiguration configuration)
