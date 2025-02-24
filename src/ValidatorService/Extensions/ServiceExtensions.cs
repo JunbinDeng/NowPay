@@ -1,3 +1,8 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Mvc;
+using ValidatorService.Middleware;
+
 namespace ValidatorService.Extensions;
 
 public static class ServiceExtensions
@@ -82,5 +87,31 @@ public static class ServiceExtensions
         }
 
         app.UseHttpsRedirection(); // Redirect HTTP to HTTPS
+    }
+
+    /// <summary>
+    /// Configures essential services including JSON serialization options and API behavior.
+    /// </summary>
+    public static void ConfigureControllers(this IServiceCollection services)
+    {
+        services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            });
+
+        services.Configure<ApiBehaviorOptions>(options =>
+        {
+            options.SuppressModelStateInvalidFilter = true; // Allow middleware to catch JSON errors
+        });
+    }
+
+    /// <summary>
+    /// Adds global exception handling middleware to the application.
+    /// </summary>
+    public static void UseGlobalExceptionHandling(this WebApplication app)
+    {
+        app.UseMiddleware<ExceptionHandlingMiddleware>(); // Apply global exception handling
     }
 }
