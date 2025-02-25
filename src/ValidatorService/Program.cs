@@ -1,41 +1,31 @@
+using ValidatorService.Data;
+using ValidatorService.Extensions;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.ConfigureControllers(); // Configure controllers and JSON settings
+builder.Services.AddSwaggerDocumentation(); // Register Swagger
+builder.Services.ConfigureHttps(builder.Configuration, builder.Environment); // Configure HTTPS & HSTS via extension method
+builder.ConfigureKestrelServer(); // Configure Kestrel
+builder.Services.AddScoped<IValidatorService, LuhnValidatorService>();
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.UseGlobalExceptionHandling(); // Apply global exception handling middleware
 
-app.UseHttpsRedirection();
+app.MapHealthChecks("/healthz"); // Monitor the service's health status
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.UseSwaggerDocumentation(); // Apply Swagger settings
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.UseHttpsConfig(builder.Configuration); // Apply HTTPS settings
+
+app.MapControllers();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+/// <summary>
+/// Partial Program class used for integration testing.
+/// This allows test projects to reference and extend the main application entry point.
+/// </summary>
+public partial class Program { }
