@@ -8,10 +8,13 @@ builder.Services.AddSwaggerDocumentation(); // Register Swagger
 builder.Services.ConfigureHttps(builder.Configuration, builder.Environment); // Configure HTTPS & HSTS via extension method
 builder.ConfigureKestrelServer(); // Configure Kestrel
 builder.Services.AddScoped<IValidatorService, LuhnValidatorService>();
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
 app.UseGlobalExceptionHandling(); // Apply global exception handling middleware
+
+app.MapHealthChecks("/healthz"); // Monitor the service's health status
 
 app.UseSwaggerDocumentation(); // Apply Swagger settings
 
