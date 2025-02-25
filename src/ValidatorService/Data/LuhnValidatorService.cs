@@ -7,8 +7,13 @@ namespace ValidatorService.Data;
 /// </summary>
 public class LuhnValidatorService : IValidatorService
 {
-    /// <inheritdoc />
-    /// <exception cref="NotImplementedException">Thrown if validation is not implemented.</exception>
+    /// <summary>
+    /// Validates a credit card number using the Luhn algorithm.
+    /// </summary>
+    /// <param name="cardNumber">The credit card number to validate.</param>
+    /// <returns>
+    /// Returns <c>true</c> if the card number is valid; otherwise, <c>false</c>.
+    /// </returns>
     public bool ValidateCardNumber(string? cardNumber)
     {
         return LuhnAlgorithm.ValidateCheckDigit(cardNumber);
