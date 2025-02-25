@@ -82,8 +82,8 @@ docker-compose up --build
 
 The API should be accessible at:
 
-- HTTP: `http://localhost:5011`
-- HTTPS: `https://localhost:5012`
+- HTTP: `http://localhost:5001`
+- HTTPS: `https://localhost:5002`
 
 ### 3. Running Unit & Integration Tests
 
@@ -102,14 +102,15 @@ dotnet test --logger "trx;LogFileName=test-results.trx"
 ### Base URL
 
 - Local: `https://localhost:7002/api/validator`
-- Docker: `https://localhost:5012/api/validator`
+- Docker: `https://localhost:5002/api/validator`
 
 ### Swagger UI
 
 Swagger is available at:
 
 ```
-https://localhost:7002/swagger/index.html
+- Local: `https://localhost:7002`
+- Docker: `https://localhost:5002`
 ```
 
 ### API Endpoints
@@ -150,7 +151,7 @@ https://localhost:7002/swagger/index.html
   }
   ```
 
-- **422 Unprocessable Entity (Invalid Card Number Length.)**
+- **422 Unprocessable Entity (Invalid Card Number Length)**
 
   ```json
   {
@@ -176,7 +177,7 @@ https://localhost:7002/swagger/index.html
   }
   ```
 
-- **422 Unprocessable Entity (Invalid Card Number Format)**
+- **422 Unprocessable Entity (Invalid Card Number)**
 
   ```json
   {
@@ -224,6 +225,16 @@ docker push <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/validator-serv
 cd infra/terraform
 terraform apply
 ```
+
+## Troubleshooting
+
+**Potential CORS Issues When Using HTTP**
+
+If you access this API over **HTTP** (for example, http://localhost:5001) from a site or page served over **HTTPS**, you might encounter “Failed to fetch” or **CORS** (Cross-Origin Resource Sharing) errors. Modern browsers often block mixed-content requests (HTTPS page calling HTTP endpoint), or you may need additional server-side CORS headers. This is **normal** behavior when using HTTP in a secure context.
+
+**How to Fix or Avoid Mixed Content**:
+
+•	Use **HTTPS** consistently for both your site and the API.
 
 ## Contributing
 
