@@ -4,6 +4,8 @@ WORKDIR /app
 # Expose the required ports
 EXPOSE 5001
 EXPOSE 5002
+EXPOSE 80
+EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src/ValidatorService
