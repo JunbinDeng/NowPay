@@ -152,7 +152,7 @@ resource "aws_ecs_service" "validator_service" {
   name            = "${var.ecr_repository}"
   cluster         = aws_ecs_cluster.validator_cluster.id
   task_definition = aws_ecs_task_definition.validator_task.arn
-  desired_count   = 2
+  desired_count   = 1
   launch_type     = "FARGATE"
 
   network_configuration {
@@ -165,6 +165,53 @@ resource "aws_ecs_service" "validator_service" {
     target_group_arn = aws_lb_target_group.validator_tg.arn
     container_name   = "${var.ecr_repository}"
     container_port   = 8080
+  }
+}
+
+# --------------------------
+# Auto Scaling Target
+# --------------------------
+resource "aws_appautoscaling_target" "ecs_target" {
+  max_capacity       = 1  # Allow scaling up to 1 task
+  min_capacity       = 0  # Scale down to zero when not in use
+  resource_id        = "service/${aws_ecs_cluster.validator_cluster.name}/${aws_ecs_service.validator_service.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+}
+
+# --------------------------------
+# Auto Scaling Policy - Scale Out
+# --------------------------------
+resource "aws_appautoscaling_policy" "scale_out" {
+  name               = "validator-scale-out"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.ecs_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_target.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value = 50.0  # Scale up when CPU > 50%
+  }
+}
+
+# --------------------------------
+# Auto Scaling Policy - Scale In
+# --------------------------------
+resource "aws_appautoscaling_policy" "scale_in" {
+  name               = "validator-scale-in"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.ecs_target.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_target.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_target.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value = 20.0  # Scale down when CPU < 20%
   }
 }
 
