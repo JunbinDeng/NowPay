@@ -219,10 +219,43 @@ docker tag validator-service <your-account-id>.dkr.ecr.<your-region>.amazonaws.c
 docker push <your-account-id>.dkr.ecr.<your-region>.amazonaws.com/validator-service:latest
 ```
 
-### 2. Deploy to ECS using Terraform (WIP)
+### 2. Deploy to ECS using Terraform
 
-```shell
+#### 1. Navigate to the Terraform Directory
+
+```
 cd infra/terraform
+```
+
+#### 2. Create or Edit `terraform.tfvars`
+
+Terraform uses `terraform.tfvars` for variable definitions. Create or update this file with the required AWS settings:
+
+```
+# infra/terraform/terraform.tfvars
+
+# Required AWS Account ID
+aws_account_id = "123456789012"
+
+# Optional Variables (adjust as needed)
+aws_region     = "us-east-1"
+ecr_repository = "my-aspnet-service"
+```
+
+**Note**: Ensure `terraform.tfvars` is **not** committed to version control (add it to `.gitignore`).
+
+#### 3. Deployment
+
+Run the following command to initialize Terraform (only required on the first run or after updating providers):
+
+```
+# Initialize Terraform
+terraform init
+
+# Review the Terraform Plan(Optional)
+terraform plan
+
+# Apply Terraform Configuration
 terraform apply
 ```
 
@@ -234,7 +267,7 @@ If you access this API over **HTTP** (for example, http://localhost:5001) from a
 
 **How to Fix or Avoid Mixed Content**:
 
-•	Use **HTTPS** consistently for both your site and the API.
+• Use **HTTPS** consistently for both your site and the API.
 
 ## Contributing
 
