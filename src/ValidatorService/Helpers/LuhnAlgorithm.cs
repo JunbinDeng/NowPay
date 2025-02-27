@@ -2,6 +2,7 @@ namespace ValidatorService.Helpers;
 
 /// <summary>
 /// Provides utility methods for validating credit card numbers using the **Luhn Algorithm**.
+/// Inspired by: <see href="https://github.com/KnowledgeForwardSolutions/Medium/blob/main/A002LuhnAlgorithm/CheckDigits/LuhnAlgorithm.cs">KnowledgeForwardSolutions</see>.
 /// </summary>
 public static class LuhnAlgorithm
 {
