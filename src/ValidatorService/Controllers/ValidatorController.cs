@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using ValidatorService.Data;
 using ValidatorService.Models;
@@ -82,7 +81,7 @@ public partial class ValidatorController : ControllerBase
             ));
         }
 
-        if (!ValidateNumberFormat(cardNumber))
+        if (!cardNumber.All(char.IsDigit))
         {
             _logger.LogWarning("Invalid card number format.");
             return UnprocessableEntity(new ApiResponse<object>(
@@ -106,16 +105,5 @@ public partial class ValidatorController : ControllerBase
         return Ok(new ApiResponse<object>(
             StatusCodes.Status200OK,
             "Valid card number."));
-    }
-
-    // Make Regex a protected virtual property (Mockable in tests)
-    protected virtual Regex NumericRegex => new Regex("^[0-9]+$", RegexOptions.Compiled);
-
-    /// <summary>
-    /// Validates if the card number consists only of digits.
-    /// </summary>
-    protected virtual bool ValidateNumberFormat(string cardNumber)
-    {
-        return NumericRegex.IsMatch(cardNumber);
     }
 }
