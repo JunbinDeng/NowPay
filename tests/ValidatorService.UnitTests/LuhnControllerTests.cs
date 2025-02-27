@@ -92,11 +92,11 @@ public class LuhnControllerTests
     public void ValidateByLuhn_WhenCardNumberIsInvalid_ReturnsUnprocessable()
     {
         // Arrange
-        const string CARD_NUMBER = "4111111111111112";
+        const string CardNumber = "4111111111111112";
         _validatorService.Setup(v => v.ValidateCardNumber(It.IsAny<string>())).Returns(false);
 
         // Act
-        var result = _controller.ValidateByLuhn(new ValidatorRequest() { CardNumber = CARD_NUMBER });
+        var result = _controller.ValidateByLuhn(new ValidatorRequest() { CardNumber = CardNumber });
 
         // Assert
         AssertErrorResponse<UnprocessableEntityObjectResult>(
@@ -110,13 +110,13 @@ public class LuhnControllerTests
     public void ValidateByLuhn_WhenCardNumberIsValid_ReturnsOk()
     {
         // Arrange
-        const string CARD_NUMBER = "4111111111111111";
+        const string CardNumber = "4111111111111111";
         _validatorService.Setup(v => v.ValidateCardNumber(It.IsAny<string>()))
             .Returns(true)
             .Verifiable();
 
         // Act
-        var result = _controller.ValidateByLuhn(new ValidatorRequest() { CardNumber = CARD_NUMBER });
+        var result = _controller.ValidateByLuhn(new ValidatorRequest() { CardNumber = CardNumber });
 
         // Assert
         _validatorService.Verify(v => v.ValidateCardNumber(It.IsAny<string>()), Times.Once);

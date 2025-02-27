@@ -11,7 +11,7 @@ namespace ValidatorService.IntegrationTests;
 public class LuhnEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
-    private const string PATH = "/api/validator/luhn";
+    private const string Path = "/api/validator/luhn";
 
     public LuhnEndpointTests(WebApplicationFactory<Program> factory)
     {
@@ -35,7 +35,7 @@ public class LuhnEndpointTests : IClassFixture<WebApplicationFactory<Program>>
             "application/json");
 
         // Act
-        var response = await _client.PostAsync(PATH, content);
+        var response = await _client.PostAsync(Path, content);
 
         // Assert
         if (expectedValid)
@@ -74,7 +74,7 @@ public class LuhnEndpointTests : IClassFixture<WebApplicationFactory<Program>>
             "application/json");
 
         // Act
-        var response = await _client.PostAsync(PATH, content);
+        var response = await _client.PostAsync(Path, content);
 
         // Assert
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
@@ -91,7 +91,7 @@ public class LuhnEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         var content = new StringContent("{}", Encoding.UTF8, "application/json");
 
         // Act
-        var response = await _client.PostAsync(PATH, content);
+        var response = await _client.PostAsync(Path, content);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -105,7 +105,7 @@ public class LuhnEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task ValidateByLuhn_WhenNoBodyProvided_ReturnsBadRequest()
     {
         // Act
-        var response = await _client.PostAsync(PATH, null);
+        var response = await _client.PostAsync(Path, null);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
