@@ -84,9 +84,9 @@ public static class ServiceExtensions
         if (configuration.GetValue<bool>("UseHsts") && !app.Environment.IsDevelopment())
         {
             app.UseHsts(); // Enforce HSTS only in Production
-        }
 
-        app.UseHttpsRedirection(); // Redirect HTTP to HTTPS
+            app.UseHttpsRedirection(); // Redirect HTTP to HTTPS
+        }
     }
 
     /// <summary>
