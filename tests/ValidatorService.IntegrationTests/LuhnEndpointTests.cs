@@ -26,7 +26,7 @@ public class LuhnEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     [InlineData("1234567890123456", false)] // Random invalid number
     [InlineData("000000000000", false)]    // Too short (12 digits)
     [InlineData("12345678901234567890", false)] // Too long (20 digits)
-    public async Task ValidateByLuhn_ForValidatesCorrectly_ReturnsCorrectResult(string number, bool expectedValid)
+    public async Task ValidateByLuhn_ForValidatesInputs_ReturnsExpectedResult(string number, bool expectedValid)
     {
         // Arrange
         var content = new StringContent(
