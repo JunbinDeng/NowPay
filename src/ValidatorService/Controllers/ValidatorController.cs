@@ -36,24 +36,19 @@ public partial class ValidatorController : ControllerBase
     /// <returns>
     /// A response indicating whether the card number is valid or not.
     /// </returns>
-    /// <response code="200">Valid card number.</response>
+    /// <response code="200">Validation result, including whether the number is valid.</response>
     /// <response code="400">Invalid request format, such as missing `card_number`.</response>
-    /// <response code="422">Invalid card number format or Luhn validation failure.</response>
-    /// <response code="500">Internal server error.</response>
     [HttpPost("luhn")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<ValidatorResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status422UnprocessableEntity)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
     public IActionResult ValidateByLuhn([FromBody] ValidatorRequest? request)
     {
         if (request == null)
         {
             _logger.LogWarning("The request body is required.");
-            return BadRequest(new ApiResponse<object>(
+            return BadRequest(new ApiResponse<ValidatorResponse>(
                 StatusCodes.Status400BadRequest,
-                "The request body is required.",
                 error: new ErrorDetails("missing_body", "Please provide a valid JSON request body.")
             ));
         }
@@ -61,9 +56,8 @@ public partial class ValidatorController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.CardNumber))
         {
             _logger.LogWarning("The 'card_number' field is required.");
-            return BadRequest(new ApiResponse<object>(
+            return BadRequest(new ApiResponse<ValidatorResponse>(
                 StatusCodes.Status400BadRequest,
-                "The 'card_number' field is required.",
                 error: new ErrorDetails("missing_field", "Please provide a valid card number.")
             ));
         }
@@ -74,9 +68,9 @@ public partial class ValidatorController : ControllerBase
         if (cardNumber.Length < 13 || cardNumber.Length > 19)
         {
             _logger.LogWarning("Invalid card number length.");
-            return UnprocessableEntity(new ApiResponse<object>(
-                StatusCodes.Status422UnprocessableEntity,
-                "Invalid card number length.",
+            return Ok(new ApiResponse<ValidatorResponse>(
+                StatusCodes.Status200OK,
+                data: new ValidatorResponse() { IsValid = false },
                 error: new ErrorDetails("invalid_length", "Card number length must be between 13 and 19 digits.")
             ));
         }
@@ -84,9 +78,9 @@ public partial class ValidatorController : ControllerBase
         if (!cardNumber.All(char.IsDigit))
         {
             _logger.LogWarning("Invalid card number format.");
-            return UnprocessableEntity(new ApiResponse<object>(
-                StatusCodes.Status422UnprocessableEntity,
-                "Invalid card number format.",
+            return Ok(new ApiResponse<ValidatorResponse>(
+                StatusCodes.Status200OK,
+                data: new ValidatorResponse() { IsValid = false },
                 error: new ErrorDetails("invalid_format", "Card number must contain only numeric digits (0-9).")
             ));
         }
@@ -95,15 +89,15 @@ public partial class ValidatorController : ControllerBase
         if (!isValid)
         {
             _logger.LogWarning("Invalid card number.");
-            return UnprocessableEntity(new ApiResponse<object>(
-                StatusCodes.Status422UnprocessableEntity,
-                "Invalid card number.",
+            return Ok(new ApiResponse<ValidatorResponse>(
+                StatusCodes.Status200OK,
+                data: new ValidatorResponse() { IsValid = isValid },
                 error: new ErrorDetails("invalid_number", "The card number does not pass the Luhn algorithm validation, please try again.")
             ));
         }
 
-        return Ok(new ApiResponse<object>(
+        return Ok(new ApiResponse<ValidatorResponse>(
             StatusCodes.Status200OK,
-            "Valid card number."));
+            data: new ValidatorResponse() { IsValid = isValid }));
     }
 }

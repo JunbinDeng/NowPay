@@ -32,7 +32,6 @@ public class ExceptionHandlingMiddleware
     {
         var response = new ApiResponse<object>(
             StatusCodes.Status500InternalServerError,
-            "An error occurred while processing your request.",
             error: new ErrorDetails("internal_error", "An unexpected error occurred. Please try again later.")
         );
 

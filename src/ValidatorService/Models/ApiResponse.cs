@@ -5,20 +5,14 @@ namespace ValidatorService.Models;
 /// </summary>
 /// <typeparam name="T">Type of the data payload.</typeparam>
 /// <param name="status">HTTP status code of the response.</param>
-/// <param name="message">Descriptive message about the response.</param>
 /// <param name="data">The response data (optional, null if not applicable).</param>
 /// <param name="error">Details of an error if applicable (null if no error).</param>
-public class ApiResponse<T>(int status, string message, T? data = default, ErrorDetails? error = null)
+public class ApiResponse<T>(int status, T? data = default, ErrorDetails? error = null)
 {
     /// <summary>
-    /// HTTP status code of the response (e.g., 200, 400, 422).
+    /// HTTP status code of the response (e.g., 200, 400).
     /// </summary>
     public int Status { get; set; } = status;
-
-    /// <summary>
-    /// A descriptive message explaining the response status.
-    /// </summary>
-    public string Message { get; set; } = message;
 
     /// <summary>
     /// The actual data returned in the response, if applicable.

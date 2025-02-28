@@ -134,7 +134,9 @@ Swagger is available at:
   ```json
   {
     "status": 200,
-    "message": "Valid card number."
+    "data": {
+      "isValid": true
+    }
   }
   ```
 
@@ -143,7 +145,6 @@ Swagger is available at:
   ```json
   {
     "status": 400,
-    "message": "The 'cardNumber' field is required.",
     "error": {
       "code": "missing_field",
       "details": "Please provide a valid card number."
@@ -151,12 +152,14 @@ Swagger is available at:
   }
   ```
 
-- **422 Unprocessable Entity (Invalid Card Number Length)**
+- **200 OK (Invalid Card Number Length)**
 
   ```json
   {
-    "status": 422,
-    "message": "Invalid card number length.",
+    "status": 200,
+    "data": {
+      "isValid": false
+    },
     "error": {
       "code": "invalid_length",
       "details": "Card number length must be between 13 and 19 digits."
@@ -164,12 +167,14 @@ Swagger is available at:
   }
   ```
 
-- **422 Unprocessable Entity (Invalid Card Number Format)**
+- **200 OK (Invalid Card Number Format)**
 
   ```json
   {
-    "status": 422,
-    "message": "Invalid card number format.",
+    "status": 200,
+    "data": {
+      "isValid": false
+    },
     "error": {
       "code": "invalid_format",
       "details": "Card number must contain only numeric digits (0-9)."
@@ -177,12 +182,14 @@ Swagger is available at:
   }
   ```
 
-- **422 Unprocessable Entity (Invalid Card Number)**
+- **200 OK (Invalid Card Number)**
 
   ```json
   {
-    "status": 422,
-    "message": "Invalid card number.",
+    "status": 200,
+    "data": {
+      "isValid": false
+    },
     "error": {
       "code": "invalid_number",
       "details": "The card number does not pass the Luhn algorithm validation, please try again."
@@ -195,7 +202,6 @@ Swagger is available at:
   ```json
   {
     "status": 500,
-    "message": "An error occurred while processing your request.",
     "error": {
       "code": "internal_error",
       "details": "An unexpected error occurred. Please try again later."

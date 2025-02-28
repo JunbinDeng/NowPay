@@ -31,7 +31,6 @@ public class LuhnControllerTests
         AssertErrorResponse<BadRequestObjectResult>(
             result,
             StatusCodes.Status400BadRequest,
-            "The request body is required.",
             "missing_body");
     }
 
@@ -46,14 +45,13 @@ public class LuhnControllerTests
         AssertErrorResponse<BadRequestObjectResult>(
             result,
             StatusCodes.Status400BadRequest,
-            "The 'card_number' field is required.",
             "missing_field");
     }
 
     [Theory]
     [InlineData("123")]
     [InlineData("12345678901234567890")]
-    public void ValidateByLuhn_WhenCardNumberIsInvalidLength_ReturnsUnprocessable(string inputs)
+    public void ValidateByLuhn_WhenCardNumberIsInvalidLength_ReturnsOk(string inputs)
     {
         // Arrange
         _validatorService.Setup(v => v.ValidateCardNumber(It.IsAny<string>())).Returns(false);
@@ -62,17 +60,16 @@ public class LuhnControllerTests
         var result = _controller.ValidateByLuhn(new ValidatorRequest() { CardNumber = inputs });
 
         // Assert
-        AssertErrorResponse<UnprocessableEntityObjectResult>(
+        AssertErrorResponse<OkObjectResult>(
             result,
-            StatusCodes.Status422UnprocessableEntity,
-            "Invalid card number length.",
+            StatusCodes.Status200OK,
             "invalid_length");
     }
 
     [Theory]
     [InlineData("123$#^789%$&-())")]
     [InlineData("!!!!!!!!!!!!!")]
-    public void ValidateByLuhn_WhenCardNumberIsInvalidFormat_ReturnsUnprocessable(string inputs)
+    public void ValidateByLuhn_WhenCardNumberIsInvalidFormat_ReturnsOk(string inputs)
     {
         // Arrange
         _validatorService.Setup(v => v.ValidateCardNumber(It.IsAny<string>())).Returns(false);
@@ -81,15 +78,14 @@ public class LuhnControllerTests
         var result = _controller.ValidateByLuhn(new ValidatorRequest() { CardNumber = inputs });
 
         // Assert
-        AssertErrorResponse<UnprocessableEntityObjectResult>(
+        AssertInvalidResponse<OkObjectResult>(
             result,
-            StatusCodes.Status422UnprocessableEntity,
-            "Invalid card number format.",
+            StatusCodes.Status200OK,
             "invalid_format");
     }
 
     [Fact]
-    public void ValidateByLuhn_WhenCardNumberIsInvalid_ReturnsUnprocessable()
+    public void ValidateByLuhn_WhenCardNumberIsInvalid_ReturnsOk()
     {
         // Arrange
         const string CardNumber = "4111111111111112";
@@ -99,10 +95,9 @@ public class LuhnControllerTests
         var result = _controller.ValidateByLuhn(new ValidatorRequest() { CardNumber = CardNumber });
 
         // Assert
-        AssertErrorResponse<UnprocessableEntityObjectResult>(
+        AssertInvalidResponse<OkObjectResult>(
             result,
-            StatusCodes.Status422UnprocessableEntity,
-            "Invalid card number.",
+            StatusCodes.Status200OK,
             "invalid_number");
     }
 
@@ -123,34 +118,47 @@ public class LuhnControllerTests
 
         AssertValidResponse<OkObjectResult>(
             result,
-            StatusCodes.Status200OK,
-            "Valid card number.");
+            StatusCodes.Status200OK);
     }
 
     private static void AssertErrorResponse<T>(
         IActionResult result,
         int expectedStatus,
-        string expectedMessage,
         string expectedErrorCode)
         where T : ObjectResult
     {
         var request = Assert.IsType<T>(result);
-        var response = Assert.IsType<ApiResponse<object>>(request.Value);
+        var response = Assert.IsType<ApiResponse<ValidatorResponse>>(request.Value);
         Assert.Equal(expectedStatus, response.Status);
-        Assert.Equal(expectedMessage, response.Message);
         Assert.NotNull(response.Error);
         Assert.Equal(expectedErrorCode, response.Error.Code);
     }
 
-    private static void AssertValidResponse<T>(
+    private static void AssertInvalidResponse<T>(
         IActionResult result,
         int expectedStatus,
-        string expectedMessage)
+        string expectedErrorCode)
         where T : ObjectResult
     {
         var request = Assert.IsType<T>(result);
-        var response = Assert.IsType<ApiResponse<object>>(request.Value);
+        var response = Assert.IsType<ApiResponse<ValidatorResponse>>(request.Value);
         Assert.Equal(expectedStatus, response.Status);
-        Assert.Equal(expectedMessage, response.Message);
+        Assert.NotNull(response.Error);
+        Assert.Equal(expectedErrorCode, response.Error.Code);
+        Assert.NotNull(response.Data);
+        Assert.False(response.Data.IsValid);
+    }
+
+    private static void AssertValidResponse<T>(
+        IActionResult result,
+        int expectedStatus)
+        where T : ObjectResult
+    {
+        var request = Assert.IsType<T>(result);
+        var response = Assert.IsType<ApiResponse<ValidatorResponse>>(request.Value);
+        Assert.Equal(expectedStatus, response.Status);
+        Assert.Null(response.Error);
+        Assert.NotNull(response.Data);
+        Assert.True(response.Data.IsValid);
     }
 }
