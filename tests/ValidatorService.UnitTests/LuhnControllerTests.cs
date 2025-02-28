@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using ValidatorService.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Moq.Protected;
 
 namespace ValidatorService.UnitTests;
 
@@ -93,11 +92,11 @@ public class LuhnControllerTests
     public void ValidateByLuhn_WhenCardNumberIsInvalid_ReturnsUnprocessable()
     {
         // Arrange
-        const string CARD_NUMBER = "4111111111111112";
+        const string CardNumber = "4111111111111112";
         _validatorService.Setup(v => v.ValidateCardNumber(It.IsAny<string>())).Returns(false);
 
         // Act
-        var result = _controller.ValidateByLuhn(new ValidatorRequest() { CardNumber = CARD_NUMBER });
+        var result = _controller.ValidateByLuhn(new ValidatorRequest() { CardNumber = CardNumber });
 
         // Assert
         AssertErrorResponse<UnprocessableEntityObjectResult>(
@@ -108,61 +107,16 @@ public class LuhnControllerTests
     }
 
     [Fact]
-    public void ValidateByLuhn_WhenServiceThrowsException_ReturnsInternalServerError()
-    {
-        // Arrange
-        const string CARD_NUMBER = "4532015112830366";
-        _validatorService.Setup(v => v.ValidateCardNumber(It.IsAny<string>()))
-            .Throws(new Exception("Unexpected error"));
-
-        // Act
-        var result = _controller.ValidateByLuhn(new ValidatorRequest() { CardNumber = CARD_NUMBER });
-
-        // Assert
-        AssertServerErrorResponse<ObjectResult>(
-            result,
-            StatusCodes.Status500InternalServerError,
-            "An error occurred while validating the card number.",
-            "internal_error");
-    }
-
-    [Fact]
-    public void ValidateByLuhn_WhenRegexThrowsException_ReturnsInternalServerError()
-    {
-        // Arrange
-        const string CARD_NUMBER = "123abc1234567890";
-
-        var mockController = new Mock<ValidatorController>(_validatorService.Object, _logger.Object)
-        {
-            CallBase = true // Allows calling real methods except overridden ones
-        };
-
-        mockController.Protected()
-            .Setup<bool>("ValidateNumberFormat", ItExpr.IsAny<string>())
-            .Throws(new Exception("Regex validation failed"));
-
-        // Act
-        var result = mockController.Object.ValidateByLuhn(new ValidatorRequest() { CardNumber = CARD_NUMBER });
-
-        // Assert
-        AssertServerErrorResponse<ObjectResult>(
-            result,
-            StatusCodes.Status500InternalServerError,
-            "An error occurred while validating the number format.",
-            "internal_error");
-    }
-
-    [Fact]
     public void ValidateByLuhn_WhenCardNumberIsValid_ReturnsOk()
     {
         // Arrange
-        const string CARD_NUMBER = "4111111111111111";
+        const string CardNumber = "4111111111111111";
         _validatorService.Setup(v => v.ValidateCardNumber(It.IsAny<string>()))
             .Returns(true)
             .Verifiable();
 
         // Act
-        var result = _controller.ValidateByLuhn(new ValidatorRequest() { CardNumber = CARD_NUMBER });
+        var result = _controller.ValidateByLuhn(new ValidatorRequest() { CardNumber = CardNumber });
 
         // Assert
         _validatorService.Verify(v => v.ValidateCardNumber(It.IsAny<string>()), Times.Once);
@@ -174,21 +128,6 @@ public class LuhnControllerTests
     }
 
     private static void AssertErrorResponse<T>(
-        IActionResult result,
-        int expectedStatus,
-        string expectedMessage,
-        string expectedErrorCode)
-        where T : ObjectResult
-    {
-        var request = Assert.IsType<T>(result);
-        var response = Assert.IsType<ApiResponse<object>>(request.Value);
-        Assert.Equal(expectedStatus, response.Status);
-        Assert.Equal(expectedMessage, response.Message);
-        Assert.NotNull(response.Error);
-        Assert.Equal(expectedErrorCode, response.Error.Code);
-    }
-
-    private static void AssertServerErrorResponse<T>(
         IActionResult result,
         int expectedStatus,
         string expectedMessage,

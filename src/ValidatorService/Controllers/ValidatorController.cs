@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using ValidatorService.Data;
 using ValidatorService.Models;
@@ -82,64 +81,29 @@ public partial class ValidatorController : ControllerBase
             ));
         }
 
-        try
+        if (!cardNumber.All(char.IsDigit))
         {
-            if (!ValidateNumberFormat(cardNumber))
-            {
-                _logger.LogWarning("Invalid card number format.");
-                return UnprocessableEntity(new ApiResponse<object>(
-                    StatusCodes.Status422UnprocessableEntity,
-                    "Invalid card number format.",
-                    error: new ErrorDetails("invalid_format", "Card number must contain only numeric digits (0-9).")
-                ));
-            }
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "An error occurred while validating the number format.");
-            return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<object>(
-                StatusCodes.Status500InternalServerError,
-                "An error occurred while validating the number format.",
-                error: new ErrorDetails("internal_error", "An unexpected error occurred. Please try again later.")
+            _logger.LogWarning("Invalid card number format.");
+            return UnprocessableEntity(new ApiResponse<object>(
+                StatusCodes.Status422UnprocessableEntity,
+                "Invalid card number format.",
+                error: new ErrorDetails("invalid_format", "Card number must contain only numeric digits (0-9).")
             ));
         }
 
-        try
+        bool isValid = _service.ValidateCardNumber(cardNumber);
+        if (!isValid)
         {
-            bool isValid = _service.ValidateCardNumber(cardNumber);
-            if (!isValid)
-            {
-                _logger.LogWarning("Invalid card number.");
-                return UnprocessableEntity(new ApiResponse<object>(
-                    StatusCodes.Status422UnprocessableEntity,
-                    "Invalid card number.",
-                    error: new ErrorDetails("invalid_number", "The card number does not pass the Luhn algorithm validation, please try again.")
-                ));
-            }
-
-            return Ok(new ApiResponse<object>(
-                StatusCodes.Status200OK,
-                "Valid card number."));
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "An error occurred while validating the card number.");
-            return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponse<object>(
-                StatusCodes.Status500InternalServerError,
-                "An error occurred while validating the card number.",
-                error: new ErrorDetails("internal_error", "An unexpected error occurred. Please try again later.")
+            _logger.LogWarning("Invalid card number.");
+            return UnprocessableEntity(new ApiResponse<object>(
+                StatusCodes.Status422UnprocessableEntity,
+                "Invalid card number.",
+                error: new ErrorDetails("invalid_number", "The card number does not pass the Luhn algorithm validation, please try again.")
             ));
         }
-    }
 
-    // Make Regex a protected virtual property (Mockable in tests)
-    protected virtual Regex NumericRegex => new Regex("^[0-9]+$", RegexOptions.Compiled);
-
-    /// <summary>
-    /// Validates if the card number consists only of digits.
-    /// </summary>
-    protected virtual bool ValidateNumberFormat(string cardNumber)
-    {
-        return NumericRegex.IsMatch(cardNumber);
+        return Ok(new ApiResponse<object>(
+            StatusCodes.Status200OK,
+            "Valid card number."));
     }
 }
