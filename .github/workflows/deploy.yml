@@ -1,0 +1,67 @@
+name: Deploy .NET App to AWS App Runner via ECR
+
+on:
+  push:
+    branches:
+      - main
+      - feature/**
+      - release/**
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 9.0
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Build the Project
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run Unit Tests
+        run: dotnet test --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+  build-and-push:
+    needs: test # Runs only if tests pass
+    runs-on: ubuntu-latest
+
+    # Only run this step on release branch
+    if: startsWith(github.ref, 'refs/heads/release/')
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      - name: Build Docker image
+        working-directory: src/ValidatorService
+        run: docker buildx build --platform linux/amd64 -t validator-service .
+
+      - name: Tag Docker image
+        working-directory: src/ValidatorService
+        run: docker tag validator-service:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/validator-service:latest
+
+      - name: Push Docker image to ECR
+        working-directory: src/ValidatorService
+        run: docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/validator-service:latest
