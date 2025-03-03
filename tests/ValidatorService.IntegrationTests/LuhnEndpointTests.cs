@@ -38,15 +38,17 @@ public class LuhnEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.PostAsync(Path, content);
 
         // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var responseBody = await response.Content.ReadFromJsonAsync<ApiResponse<ValidatorResponse>>();
+        Assert.NotNull(responseBody);
         if (expectedValid)
         {
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Null(responseBody.Error);
+            Assert.NotNull(responseBody.Data);
+            Assert.True(responseBody.Data.IsValid);
         }
         else
         {
-            Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
-            var responseBody = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
-            Assert.NotNull(responseBody);
             Assert.NotNull(responseBody.Error);
             if (number.Length >= 13 && number.Length <= 19)
             {
@@ -56,6 +58,8 @@ public class LuhnEndpointTests : IClassFixture<WebApplicationFactory<Program>>
             {
                 Assert.Equal("invalid_length", responseBody.Error.Code);
             }
+            Assert.NotNull(responseBody.Data);
+            Assert.False(responseBody.Data.IsValid);
         }
     }
 
@@ -77,8 +81,8 @@ public class LuhnEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.PostAsync(Path, content);
 
         // Assert
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
-        var responseBody = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var responseBody = await response.Content.ReadFromJsonAsync<ApiResponse<ValidatorResponse>>();
         Assert.NotNull(responseBody);
         Assert.NotNull(responseBody.Error);
         Assert.Equal(expectedErrorCode, responseBody.Error.Code);
@@ -95,7 +99,7 @@ public class LuhnEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var responseBody = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
+        var responseBody = await response.Content.ReadFromJsonAsync<ApiResponse<ValidatorResponse>>();
         Assert.NotNull(responseBody);
         Assert.NotNull(responseBody.Error);
         Assert.Equal("missing_field", responseBody.Error.Code);
@@ -109,7 +113,7 @@ public class LuhnEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var responseBody = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
+        var responseBody = await response.Content.ReadFromJsonAsync<ApiResponse<ValidatorResponse>>();
         Assert.NotNull(responseBody);
         Assert.NotNull(responseBody.Error);
         Assert.Equal("missing_body", responseBody.Error.Code);
