@@ -90,12 +90,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.5.0 # Change to your version
-
-      - name: Setup Terraform Variables
-        working-directory: infra/terraform/apprunner
-        run: |
-          echo 'aws_account_id = ${{ secrets.AWS_ACCOUNT_ID }}' > terraform.tfvars
+          terraform_version: 1.5.7 # Change to your version
 
       - name: Terraform Init
         working-directory: infra/terraform/apprunner
@@ -103,4 +98,4 @@ jobs:
 
       - name: Terraform Apply
         working-directory: infra/terraform/apprunner
-        run: terraform apply -auto-approve -var-file="terraform.tfvars"
+        run: terraform apply -auto-approve -var="aws_account_id=${{ secrets.AWS_ACCOUNT_ID }}" -var="aws_region=${{ secrets.AWS_REGION }}"
